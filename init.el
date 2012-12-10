@@ -1,4 +1,4 @@
-(set-face-attribute 'default nil :font "Monaco-14")
+(set-face-attribute 'default nil :font "mono-10")
 
 ;; hide the toolbar
 (tool-bar-mode -1)
@@ -10,9 +10,37 @@
 ;; usage: M-x package-install
 ;; nrepl, solarized-theme, exec-path-from-shell
 (require 'package)
-(add-to-list 'package-archives
-             '("marmalade" . "http://marmalade-repo.org/packages/"))
+
+(defvar marmalade '("marmalade" . "http://marmalade-repo.org/packages/"))
+(defvar melpa     '("melpa" . "http://melpa.milkbox.net/packages/"))
+(defvar gnu       '("gnu" . "http://elpa.gnu.org/packages"))
+
+(add-to-list 'package-archives marmalade)
+(add-to-list 'package-archives melpa t)
+(add-to-list 'package-archives gnu)
+
 (package-initialize)
+
+(defun packages-install (&rest packages)
+  (mapc (lambda (package)
+          (let ((name (car package))
+                (repo (cdr package)))
+            (when (not (package-installed-p name))
+              (let ((package-archives (list repo)))
+                (package-install name)))))
+        packages))
+
+(defun init--install-packages ()
+  (packages-install
+   (cons 'exec-path-from-shell melpa)
+   (cons 'paredit melpa)
+   (cons 'gist melpa)
+   (cons 'clojure-mode melpa)
+   (cons 'clojure-test-mode melpa)
+   (cons 'nrepl melpa)
+   (cons 'solarized-theme melpa)))
+
+(init--install-packages)
 
 ;; oh yeah
 (load-theme 'solarized-dark t)
@@ -44,28 +72,37 @@
 (setq TeX-PDF-mode t)
 (setq-default TeX-master nil)
 
-(setq TeX-output-view-style "open %o")
-
 (add-hook 'LaTeX-mode-hook 'TeX-source-correlate-mode)
 
 (setq TeX-source-correlate-method 'synctex)
 
-(add-hook 'LaTeX-mode-hook
-      (lambda()
-        (add-to-list 'TeX-expand-list
-             '("%q" skim-make-url))))
+(setq inferior-lisp-program "browser-repl")
 
-(defun skim-make-url ()
-  (concat
-   (TeX-current-line)
-   " \""
-   (expand-file-name (funcall file (TeX-output-extension) t)
-             (file-name-directory (TeX-master-file)))
-   "\" \""
-   (buffer-file-name)
-   "\""))
+(add-to-list 'auto-mode-alist '("\.cljs$" . clojure-mode))
+(add-to-list 'auto-mode-alist '("\.cljx$" . clojure-mode))
+(add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
 
-(setq TeX-view-program-list
-      '(("Skim" "/Applications/Skim.app/Contents/SharedSupport/displayline %q")))
+;; switch between header and implementation: C-c o
+(add-hook 'c-mode-common-hook
+  (lambda() 
+    (local-set-key  (kbd "C-c o") 'ff-find-other-file)))
 
-(setq TeX-view-program-selection '((output-pdf "Skim")))
+(setq-default indent-tabs-mode nil)
+(setq c-basic-indent 4)
+(setq tab-width 4)
+
+(autoload 'paredit-mode "paredit"
+  "Minor mode for pseudo-structurally editing Lisp code." t)
+(add-hook 'emacs-lisp-mode-hook       (lambda () (paredit-mode +1)))
+(add-hook 'lisp-mode-hook             (lambda () (paredit-mode +1)))
+(add-hook 'lisp-interaction-mode-hook (lambda () (paredit-mode +1)))
+(add-hook 'scheme-mode-hook           (lambda () (paredit-mode +1)))
+(add-hook 'clojure-mode-hook          (lambda () (paredit-mode +1)))
+
+(setq scmutils-root "/usr/local/scmutils")
+
+(setq scheme-program-name
+      (concat scmutils-root
+      "/mit-scheme/bin/scheme "
+      "-library " scmutils-root "/mit-scheme/lib "
+      "-heap 6500"))
