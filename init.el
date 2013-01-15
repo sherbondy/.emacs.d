@@ -38,12 +38,22 @@
    (cons 'clojure-mode melpa)
    (cons 'clojure-test-mode melpa)
    (cons 'nrepl melpa)
-   (cons 'solarized-theme melpa)))
+   (cons 'solarized-theme melpa)
+   (cons 'rainbow-delimiters melpa)
+   (cons 'markdown-mode melpa)
+   (cons 'haml-mode melpa)
+   (cons 'scss-mode melpa)))
 
 (init--install-packages)
 
+(require 'rainbow-delimiters)
+(global-rainbow-delimiters-mode)
+
 ;; oh yeah
 (load-theme 'solarized-dark t)
+
+;; show line numbers!
+(global-linum-mode t)
 
 ;; Enable eldoc in clojure buffers:
 (add-hook 'nrepl-interaction-mode-hook
@@ -51,12 +61,6 @@
 
 ;; Stop the error buffer from popping up while working in the REPL buffer:
 (setq nrepl-popup-stacktraces nil)
-
-;; Are we on a mac?
-(setq is-mac (equal system-type 'darwin))
-
-;; Setup environment variables from the user's shell.
-(when is-mac (exec-path-from-shell-initialize))
 
 ;; make sure path is correct when launched as application
 (setenv "PATH" (concat "/usr/local/bin:" (getenv "PATH")))
@@ -81,6 +85,8 @@
 (add-to-list 'auto-mode-alist '("\.cljs$" . clojure-mode))
 (add-to-list 'auto-mode-alist '("\.cljx$" . clojure-mode))
 (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))
+(add-to-list 'auto-mode-alist '("\\.haml\\'" . haml-mode))
+(add-to-list 'auto-mode-alist '("\\.scss\\'" . scss-mode))
 
 ;; switch between header and implementation: C-c o
 (add-hook 'c-mode-common-hook
@@ -98,6 +104,7 @@
 (add-hook 'lisp-interaction-mode-hook (lambda () (paredit-mode +1)))
 (add-hook 'scheme-mode-hook           (lambda () (paredit-mode +1)))
 (add-hook 'clojure-mode-hook          (lambda () (paredit-mode +1)))
+(add-hook 'nrepl-mode-hook 'paredit-mode)
 
 (setq scmutils-root "/usr/local/scmutils")
 
@@ -106,3 +113,24 @@
       "/mit-scheme/bin/scheme "
       "-library " scmutils-root "/mit-scheme/lib "
       "-heap 6500"))
+
+
+;; Teach compile the syntax of the kibit output
+(require 'compile)
+(add-to-list 'compilation-error-regexp-alist-alist
+         '(kibit "At \\([^:]+\\):\\([[:digit:]]+\\):" 1 2 nil 0))
+(add-to-list 'compilation-error-regexp-alist 'kibit)
+
+;; A convenient command to run "lein kibit" in the project to which
+;; the current emacs buffer belongs to.
+(defun kibit ()
+  "Run kibit on the current project.
+Display the results in a hyperlinked *compilation* buffer."
+  (interactive)
+  (compile "lein kibit"))
+
+
+(autoload 'markdown-mode "markdown-mode.el" 
+  "Major mode for editing Markdown files" t) 
+
+(setq auto-mode-alist (cons '("\\.md" . markdown-mode) auto-mode-alist))
