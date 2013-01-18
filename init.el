@@ -15,9 +15,9 @@
 (defvar melpa     '("melpa" . "http://melpa.milkbox.net/packages/"))
 (defvar gnu       '("gnu" . "http://elpa.gnu.org/packages"))
 
-(add-to-list 'package-archives marmalade)
+(add-to-list 'package-archives marmalade t)
 (add-to-list 'package-archives melpa t)
-(add-to-list 'package-archives gnu)
+(add-to-list 'package-archives gnu t)
 
 (package-initialize)
 
@@ -42,7 +42,9 @@
    (cons 'rainbow-delimiters melpa)
    (cons 'markdown-mode melpa)
    (cons 'haml-mode melpa)
-   (cons 'scss-mode melpa)))
+   (cons 'scss-mode melpa)
+   (cons 'magit melpa)
+   (cons 'geiser marmalade)))
 
 (init--install-packages)
 
@@ -134,3 +136,6 @@ Display the results in a hyperlinked *compilation* buffer."
   "Major mode for editing Markdown files" t) 
 
 (setq auto-mode-alist (cons '("\\.md" . markdown-mode) auto-mode-alist))
+
+(setq quack-default-program "csi")
+(require 'quack)
