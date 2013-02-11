@@ -1,3 +1,6 @@
 elpa/
 var/
 ac-dict/
+semanticdb/
+session*
+eshell/
